@@ -1,0 +1,76 @@
+{% extends '__base.html' %}
+{% block css %}
+    {{ block.super }}
+    <style>
+        .borderless td, .borderless th {
+            border: none;
+        }
+    </style>
+{% endblock %}
+{% block navbar %}
+{% endblock %}
+
+{% block center_bar %}
+    <div class="card">
+        <div class="card-header text-center">
+            <div class="d-flex justify-content-between">
+                <div class="col-md-4 text-left">
+                    Federal Tax ID: [Pending]<br/>
+                    Washington Tax ID: [Pending]<br/>
+                </div>
+                <div class="col-md-4">
+                    <h2>Invoice #{{ object.id }}</h2>
+                </div>
+                <div class="col-md-4">
+                    <u>Date of Payment:</u><br/>
+                    {% if object.date_paid %}
+                        {{ object.date_paid }}
+                    {% else %}
+                        Not Paid Yet
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <u>Paid By:</u><br/>
+                    { REDACTED }
+                </div>
+                <div class="col-md-3">
+                    <u>Paid To:</u><br/>
+                    {{ object.employee.user.first_name }} {{ object.employee.user.last_name }}<br/><br/>
+                    <u>For:</u><br/>
+                    Childcare for { REDACTED }
+                </div>
+                <div class="col-md-3">
+                    <table class="table table-sm borderless">
+                        <tr>
+                            <td colspan="2"><u>Dates of Service:</u></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">{{ object.pay_period_start }} - {{ object.pay_period_start }}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><u>Hours</u></td>
+                            <td><u>Wage</u></td>
+                        </tr>
+                        <tr>
+                            <td>{{ object.hours }}</td>
+                            <td>{{ object.current_wage }}</td>
+                        </tr>
+                    </table>
+
+                </div>
+                <div class="col-md-3">
+                    <u>Invoice Total:</u><br/>
+                    <h2 style="color:blue">${{ object.gross_total }}</h2>
+                </div>
+            </div>
+            <hr>
+    {% include 'payroll/details_for_payroll.html' %}
+
+        </div>
+    </div>
+{% endblock %}

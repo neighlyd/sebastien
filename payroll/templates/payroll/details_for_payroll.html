@@ -1,0 +1,101 @@
+<div class="row">
+
+    <div class="col-md-6">
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th colspan="3" class="text-center">Employer Taxes</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th class="text-center">Pay Period</th>
+                        <th class="text-center">Year to Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center">Wages</td>
+                        <td class="text-center">${{ object.gross_total }}</td>
+                        <td class="text-center">${{ ytd.gross_total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Medicare</td>
+                        <td class="text-center"><i>${{ object.employer_medicare }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employer_medicare }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Social Security</td>
+                        <td class="text-center"><i>${{ object.employer_social_security }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employer_social_security }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">FUTA</td>
+                        <td class="text-center"><i>${{ object.futa }}</i></td>
+                        <td class="text-center"><i>${{ ytd.futa }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">WASUTA</td>
+                        <td class="text-center"><i>${{ object.wa_uta }}</i></td>
+                        <td class="text-center"><i>${{ ytd.wa_uta }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><i>Subtotal</i></td>
+                        <td class="text-center"><i>${{ employer_taxes }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employer_taxes }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><b>Total Cost</b></td>
+                        <td class="text-center"><i>${{ total_cost }}</i></td>
+                        <td class="text-center"><i>${{ ytd.total_cost }}</i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th colspan="3" class="text-center">Employee Taxes</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th class="text-center">Pay Period</th>
+                        <th class="text-center">Year to Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-center">Wages</td>
+                        <td class="text-center">${{ object.gross_total }}</td>
+                        <td class="text-center">${{ ytd.gross_total }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Medicare</td>
+                        <td class="text-center"><i>${{ object.employee_medicare }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employee_medicare }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Social Security</td>
+                        <td class="text-center"><i>${{ object.employee_social_security }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employee_social_security }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><i>Subtotal</i></td>
+                        <td class="text-center"><i>${{ employee_taxes }}</i></td>
+                        <td class="text-center"><i>${{ ytd.employee_taxes }}</i></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><b>Net Pay</b></td>
+                        <td class="text-center"><i>${{ net_pay }}</i></td>
+                        <td class="text-center"><i>${{ ytd.net_pay }}</i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

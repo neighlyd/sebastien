@@ -1,0 +1,27 @@
+{% extends '__base.html' %}
+{% load crispy_forms_tags %}
+
+{% block center_bar %}
+<div class="card">
+    <div class="card-header">
+        <h4>Create a Profile</h4>
+    </div>
+
+    <div class="card-body">
+        {% crispy form %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function(){
+            $('.dateinput').datepicker({
+                autoclose: true,
+                assumeNearbyYear:true
+            });
+        })
+    </script>
+{% endblock %}

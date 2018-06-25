@@ -1,0 +1,27 @@
+{% include '__base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <br>
+    <div class="col-md-5 offset-3">
+        <div class="card">
+            <div class="card-header">
+                <h4>Enter Employee Information</h4>
+            </div>
+            <div class="card-body">
+                    {% crispy form %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            $('.dateinput').datepicker({
+                autoclose: true,
+                assumeNearbyYear:true
+            });
+        })
+    </script>
+{% endblock %}
