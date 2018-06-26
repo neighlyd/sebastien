@@ -9,7 +9,8 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
-from django.template.loader import get_template
+from django.template import Context
+from django.template.loader import render_to_string
 
 from braces import views
 
@@ -127,16 +128,8 @@ class PayrollEntryView(views.LoginRequiredMixin,
                 obj.employee = employee.profile
                 if self.request.user.email:
                     approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-                    payroll_email_employer = get_template('payroll/payroll_entered_for_employer.html').render(
-                        Context({
-                            'obj': obj
-                        })
-                    )
-                    payroll_email_employee = get_template('payroll/payroll_entered_for_employee.html').render(
-                        Context({
-                            'obj': obj
-                        })
-                    )
+                    payroll_email_employer = render_to_string('payroll/payroll_entered_for_employer.html', obj)
+                    payroll_email_employee = render_to_string('payroll/payroll_entered_for_employee.html', obj)
                     send_mail('[Sebastien] Time Card Submitted', payroll_email_employee,
                               'neighlyd@sebastien.site', [self.request.user.email,], fail_silently=True)
                     send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
@@ -186,20 +179,13 @@ class PayrollReviewView(views.LoginRequiredMixin,
         obj = form.save(commit=False)
         obj.paid = True
         obj.date_paid = datetime.datetime.now()
-        if obj.employee.profile.user.email:
+        if obj.employee.user.email:
             approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-            payroll_email_employee = get_template('payroll/payroll_approved_for_employee.html').render(
-                Context({
-                    'obj': obj
-                })
-            )
-            payroll_email_employer = get_template('payroll/payroll_approved_for_employer.html').render(
-                Context({
-                    'obj': obj
-                })
-            )
+            context = {'obj': obj}
+            payroll_email_employee = render_to_string('payroll/payroll_approved_for_employee.html', context)
+            payroll_email_employer = render_to_string('payroll/payroll_approved_for_employer.html', context)
             send_mail('[Sebastien] Time Card Approved', payroll_email_employee,
-                      'neighlyd@sebastien.site', [obj.employee.profile.user.email, ], fail_silently=True)
+                      'neighlyd@sebastien.site', [obj.employee.user.email, ], fail_silently=True)
             send_mail('[Sebastien] Time Card Approved', payroll_email_employer,
                       'neighlyd@sebastien.site', approver_emails)
         obj.save()
