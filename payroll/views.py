@@ -145,7 +145,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
                     approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
                     send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
                               'neighlyd@sebastien.site', approver_emails)
-                 return super(PayrollEntryView, self).form_valid(form)
+                return super(PayrollEntryView, self).form_valid(form)
 
 
 class PayrollReviewView(views.LoginRequiredMixin,
