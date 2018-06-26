@@ -17,9 +17,11 @@
 {% endblock %}
 
 {% block scripts %}
+    {{ block.super }}
     <script>
         $(document).ready(function(){
             $('.dateinput').datepicker({
+                format: 'yyyy/mm/dd',
                 orientation:'bottom left',
                 autoclose: true,
                 assumeNearbyYear:true

@@ -1,10 +1,14 @@
 from django import forms
 from django.forms import ModelForm
-from payroll.models import Payroll
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Fieldset, Button, Field, Div
 from crispy_forms.bootstrap import FormActions, AppendedText
+
+from payroll.models import Payroll
 from profiles.models import Profile
+
+
 
 class Row(Div):
     css_class = "form-row"
@@ -31,8 +35,16 @@ class PayrollEntryForm(ModelForm):
                 Submit('cancel', 'Cancel', css_class='btn btn-danger', formnovalidate='formnovalidate'),
             )
         )
-        if self.user.profile.wage:
+        if self.user.groups.filter(name='Nanny').exists():
             del self.fields['employee']
+
+    def clean(self):
+        cleaned_data = super(PayrollEntryForm, self).clean()
+        start_date = cleaned_data.get('pay_period_start')
+        end_date = cleaned_data.get('pay_period_end')
+        if end_date < start_date:
+            msg = 'Pay period end date must be after pay period start date.'
+            self._errors['pay_period_end'] = self.error_class([msg])
 
     class Meta:
         model = Payroll
@@ -52,19 +64,14 @@ class PayrollReviewForm(ModelForm):
                 Field('employee', wrapper_class='col-md-8'),
             ),
             Row(
-                Field('pay_period_start', wrapper_class='col-md-4'),
-                Field('pay_period_end', wrapper_class='col-md-4'),
+                Field('pay_period_start', wrapper_class='col-md-4', autocomplete='off'),
+                Field('pay_period_end', wrapper_class='col-md-4', autocomplete='off'),
                 Field('hours', wrapper_class='col-md-4'),
             ),
-            Row(
-                    Field('paid'),
-            ),
-            FormActions(
-                Submit('submit', 'Save', css_class='btn-default'),
-                Submit('cancel', 'Cancel', css_class='btn-danger', formnovalidate='formnovalidate')
-            )
         )
+        self.helper.add_input(Submit('submit', 'Paid', css_class='btn-default'))
+        self.helper.add_input(Submit('cancel', 'Cancel', css_class='btn-danger', formnovalidate='formnovalidate'))
 
     class Meta:
         model = Payroll
-        fields = ['employee', 'pay_period_start', 'pay_period_end', 'hours', 'paid']
+        fields = ['employee', 'pay_period_start', 'pay_period_end', 'hours']

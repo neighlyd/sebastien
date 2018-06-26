@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
+from django.template.loader import get_template
 
 from braces import views
 
@@ -126,15 +127,25 @@ class PayrollEntryView(views.LoginRequiredMixin,
                 obj.employee = employee.profile
                 if self.request.user.email:
                     approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-                    send_mail('[Sebastien] Time Card Submitted', 'Your time card was successfully entered.',
-                              'neighlyd@sebastien.site', [self.request.user.email,])
-                    send_mail('[Sebastien] Time Card for Review', 'A time card has been submitted for review.',
-                              'neighlyd@sebastien.site', approver_emails)
+                    payroll_email_employer = get_template('payroll/payroll_entered_for_employer.html').render(
+                        Context({
+                            'obj': obj
+                        })
+                    )
+                    payroll_email_employee = get_template('payroll/payroll_entered_for_employee.html').render(
+                        Context({
+                            'obj': obj
+                        })
+                    )
+                    send_mail('[Sebastien] Time Card Submitted', payroll_email_employee,
+                              'neighlyd@sebastien.site', [self.request.user.email,], fail_silently=True)
+                    send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
+                              'neighlyd@sebastien.site', approver_emails, fail_silently=True)
                 else:
                     approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-                    send_mail('[Sebastien] Time Card for Review', 'A time card has been submitted for review.',
+                    send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
                               'neighlyd@sebastien.site', approver_emails)
-                return super(PayrollEntryView, self).form_valid(form)
+                 return super(PayrollEntryView, self).form_valid(form)
 
 
 class PayrollReviewView(views.LoginRequiredMixin,
@@ -173,14 +184,24 @@ class PayrollReviewView(views.LoginRequiredMixin,
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        if obj.paid:
-            obj.date_paid = datetime.datetime.now()
-            if obj.employee.profile.user.email:
-                approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-                send_mail('[Sebastien] Time Card Approved', 'Your time card was approved.',
-                          'neighlyd@sebastien.site', [obj.employee.profile.user.email, ])
-                send_mail('[Sebastien] Time Card Approved', 'Time card approved.',
-                          'neighlyd@sebastien.site', approver_emails)
+        obj.paid = True
+        obj.date_paid = datetime.datetime.now()
+        if obj.employee.profile.user.email:
+            approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
+            payroll_email_employee = get_template('payroll/payroll_approved_for_employee.html').render(
+                Context({
+                    'obj': obj
+                })
+            )
+            payroll_email_employer = get_template('payroll/payroll_approved_for_employer.html').render(
+                Context({
+                    'obj': obj
+                })
+            )
+            send_mail('[Sebastien] Time Card Approved', payroll_email_employee,
+                      'neighlyd@sebastien.site', [obj.employee.profile.user.email, ], fail_silently=True)
+            send_mail('[Sebastien] Time Card Approved', payroll_email_employer,
+                      'neighlyd@sebastien.site', approver_emails)
         obj.save()
         return HttpResponseRedirect(reverse_lazy('payroll:list'))
 

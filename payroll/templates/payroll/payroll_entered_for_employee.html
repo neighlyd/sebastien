@@ -1,0 +1,3 @@
+Hello {{ obj.employee.user.first_name }},
+
+Your time card with pay period ending {{ obj.pay_period_end }} has been submitted and is awaiting approval. <a href="{% url 'payroll:detail' obj.id %}">You can view the invoice here.</a>

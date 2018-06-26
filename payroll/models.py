@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from django.db.models import Sum, F
 
-from profiles.models import Profile, Role
+from profiles.models import Profile
 
 # Create your models here.
 class Payroll(models.Model):

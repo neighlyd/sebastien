@@ -1,0 +1,3 @@
+Hello Approvers,
+
+{{ obj.employee.user.first_name }} has entered a time card for pay period ending {{ obj.pay_period_end }}. <a href="{% url 'payroll:review' obj.id %}">You can review and approve the timecard here.</a>
