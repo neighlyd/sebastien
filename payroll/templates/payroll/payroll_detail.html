@@ -15,8 +15,8 @@
         <div class="card-header text-center">
             <div class="d-flex justify-content-between">
                 <div class="col-md-4 text-left">
-                    Federal Tax ID: [Pending]<br/>
-                    Washington Tax ID: [Pending]<br/>
+                    Federal Tax ID: {% include 'payroll/redacted/federal_tax.html' %}<br/>
+                    Washington Tax ID: {% include 'payroll/redacted/state_tax.html' %}<br/>
                 </div>
                 <div class="col-md-4">
                     <h2>Invoice #{{ object.id }}</h2>
@@ -35,13 +35,13 @@
             <div class="row">
                 <div class="col-md-3">
                     <u>Paid By:</u><br/>
-                    { REDACTED }
+                    {% include 'payroll/redacted/address.html' %}
                 </div>
                 <div class="col-md-3">
                     <u>Paid To:</u><br/>
                     {{ object.employee.user.first_name }} {{ object.employee.user.last_name }}<br/><br/>
                     <u>For:</u><br/>
-                    Childcare for { REDACTED }
+                    {% include 'payroll/redacted/purpose.html' %}
                 </div>
                 <div class="col-md-3">
                     <table class="table table-sm borderless">

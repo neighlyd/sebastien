@@ -65,6 +65,7 @@ class PayrollDetailView(views.LoginRequiredMixin,
         context['employee_taxes'] = self.object.employee_medicare + self.object.employee_social_security
         context['employer_taxes'] =  self.object.employer_medicare + \
                                      self.object.employer_social_security + self.object.futa + self.object.wa_uta
+        context['combined_taxes'] = context['employee_taxes'] + context['employer_taxes']
         context['total_cost'] = self.object.gross_total + context['employer_taxes']
         context['net_pay'] = self.object.gross_total - context['employee_taxes']
         context['ytd'] = Payroll.objects\
@@ -79,12 +80,7 @@ class PayrollDetailView(views.LoginRequiredMixin,
         context['ytd']['employee_taxes'] = context['ytd']['employee_medicare'] + context['ytd']['employee_social_security']
         context['ytd']['net_pay'] = context['ytd']['gross_total'] - context['ytd']['employee_taxes']
         context['ytd']['total_cost'] = context['ytd']['gross_total'] + context['ytd']['employer_taxes']
-        approver_list = []
-        approver_qs = User.objects.all()
-        for ap in approver_qs:
-            if ap.has_perm('payroll.approve_payroll'):
-                approver_list.append(ap)
-        context['approvers'] = approver_list
+        context['ytd']['combined_taxes'] = context['ytd']['employer_taxes'] + context['ytd']['employee_taxes']
         return context
 
 
