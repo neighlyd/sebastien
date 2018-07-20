@@ -28,23 +28,24 @@
         {% include '__navbar.html' %}
     {% endblock %}
 
+        <div class="row justify-content-center">
+            {% include '__messages.html' %}
+        </div>
     <div class="container-fluid d-flex justify-content-between pt-2">
-        {% include '__messages.html' %}
+            <div class="p-0 col-md-2">
+                {% block left_sidebar %}
+                {% endblock %}
+            </div>
 
-        <div class="p-0 col-md-2">
-            {% block left_sidebar %}
-            {% endblock %}
-        </div>
+            <div class="p-0 col-md-7">
+                {% block center_bar %}
+                {% endblock %}
+            </div>
 
-        <div class="p-0 col-md-7">
-            {% block center_bar %}
-            {% endblock %}
-        </div>
-
-        <div class="p-0 col-md-2">
-            {% block right_sidebar %}
-            {% endblock %}
-        </div>
+            <div class="p-0 col-md-2">
+                {% block right_sidebar %}
+                {% endblock %}
+            </div>
 
     </div>
 

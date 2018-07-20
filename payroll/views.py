@@ -9,8 +9,9 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string, get_template
 from django.template import Context
-from django.template.loader import render_to_string
+from django.conf import settings
 
 from braces import views
 
@@ -27,7 +28,6 @@ class PayrollListView(views.LoginRequiredMixin,
     }
     model = Payroll
     template_name = 'payroll/payroll_list.html'
-
 
     def get_queryset(self):
         queryset = super(PayrollListView, self).get_queryset()
@@ -84,7 +84,6 @@ class PayrollDetailView(views.LoginRequiredMixin,
         return context
 
 
-
 class PayrollEntryView(views.LoginRequiredMixin,
                        views.MultiplePermissionsRequiredMixin,
                        CreateView):
@@ -110,39 +109,40 @@ class PayrollEntryView(views.LoginRequiredMixin,
             return super(PayrollEntryView, self).post(self, request, *args, **kwargs)
 
     def send_email(self, obj):
+        subject = '[Sébastien] Time Card Submitted'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        context = {
+            'employee': obj.employee.user.first_name,
+            'pay_period_end': obj.pay_period_end,
+            'id': obj.pk,
+            'site_url': self.request.META['HTTP_HOST'],
+        }
+        payroll_email_employer = render_to_string('payroll/payroll_entered_for_employer.html', context)
+        approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
         if obj.employee.user.email:
-            approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-            context = {
-                'employee': obj.employee.user.first_name,
-                'pay_period_end': obj.pay_period_end,
-                'id': obj.pk,
-            }
-            payroll_email_employer = render_to_string('payroll/payroll_entered_for_employer.html', context)
             payroll_email_employee = render_to_string('payroll/payroll_entered_for_employee.html', context)
-            send_mail('[Sebastien] Time Card Submitted', payroll_email_employee,
-                      'neighlyd@sebastien.site', [obj.employee.user.email, ], fail_silently=True)
-            send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
-                      'neighlyd@sebastien.site', approver_emails, fail_silently=True)
-        else:
-            approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-            context = {
-                'employee': obj.employee.first_name,
-                'pay_period_end': obj.pay_period_end,
-                'id': obj.id,
-            }
-            payroll_email_employer = render_to_string('payroll/payroll_entered_for_employer.html', context)
-            send_mail('[Sebastien] Time Card for Review', payroll_email_employer,
-                      'neighlyd@sebastien.site', approver_emails)
-        return None
+            send_mail(
+                subject,
+                payroll_email_employee,
+                from_email,
+                [obj.employee.user.email, ],
+                fail_silently=True,
+                html_message=payroll_email_employee,
+            )
+        send_mail(subject,
+                  payroll_email_employer,
+                  from_email,
+                  approver_emails,
+                  fail_silently=True,
+                  html_message=payroll_email_employer)
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        try:
-            if obj.employee:
-                obj.save()
-                self.send_email(obj)
-                return super(PayrollEntryView, self).form_valid(form)
-        except:
+        if obj.employee:
+            obj = form.save()
+            self.send_email(obj)
+            return super(PayrollEntryView, self).form_valid(form)
+        else:
             employee = self.request.user
             if not employee.profile.wage:
                 messages.add_message(self.request, messages.ERROR,
@@ -152,7 +152,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
                 obj.employee = employee.profile
                 obj.save()
                 self.send_email(obj)
-                return redirect(reverse_lazy('payroll:list'))
+                return super(PayrollEntryView, self).form_valid(form)
 
 
 class PayrollReviewView(views.LoginRequiredMixin,
@@ -162,6 +162,9 @@ class PayrollReviewView(views.LoginRequiredMixin,
     model = Payroll
     form_class = PayrollReviewForm
     template_name = 'payroll/payroll_review.html'
+
+    def get_success_url(self):
+        return reverse_lazy('payroll:list')
 
     def post(self, request, *args, **kwargs):
         if 'cancel' in request.POST:
@@ -189,21 +192,40 @@ class PayrollReviewView(views.LoginRequiredMixin,
         context['ytd']['total_cost'] = context['ytd']['gross_total'] + context['ytd']['employer_taxes']
         return context
 
+    def send_email(self, obj):
+        subject = '[Sébastien] Time Card Approved'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        context = {
+            'employee': obj.employee.user.first_name,
+            'pay_period_end': obj.pay_period_end,
+            'id': obj.pk,
+            'site_url': self.request.META['HTTP_HOST']
+        }
+        approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
+        payroll_email_employer = render_to_string('payroll/payroll_approved_for_employer.html', context)
+
+        if obj.employee.user.email:
+            payroll_email_employee = render_to_string('payroll/payroll_approved_for_employee.html', context)
+            send_mail(subject,
+                      payroll_email_employee,
+                      from_email,
+                      [obj.employee.user.email],
+                      fail_silently=True,
+                      html_message=payroll_email_employee)
+        send_mail(subject,
+                  payroll_email_employer,
+                  from_email,
+                  approver_emails,
+                  fail_silently=True,
+                  html_message=payroll_email_employer)
+
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.paid = True
         obj.date_paid = datetime.datetime.now()
-        if obj.employee.user.email:
-            approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
-            context = {'obj': obj}
-            payroll_email_employee = render_to_string('payroll/payroll_approved_for_employee.html', context)
-            payroll_email_employer = render_to_string('payroll/payroll_approved_for_employer.html', context)
-            send_mail('[Sebastien] Time Card Approved', payroll_email_employee,
-                      'neighlyd@sebastien.site', [obj.employee.user.email], fail_silently=True)
-            send_mail('[Sebastien] Time Card Approved', payroll_email_employer,
-                      'neighlyd@sebastien.site', approver_emails)
         obj.save()
-        return HttpResponseRedirect(reverse_lazy('payroll:list'))
+        self.send_email(obj)
+        return super(PayrollReviewView, self).form_valid(form)
 
 
 class PayrollDeleteView(views.LoginRequiredMixin,
