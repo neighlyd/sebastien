@@ -19,13 +19,6 @@ from decouple import config, Csv
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEBUG = config('DEBUG', default=False, cast=bool)
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -132,11 +125,20 @@ MESSAGE_TAGS = {
     messages.ERROR: 'alert-danger',
 }
 
+# Python decouple settings
+# remember to set your local server environment variables (add to ~/.bashrc)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 SECRET_KEY = config('SECRET_KEY')
 
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
-EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+if os.environ['DJANGO_SERVER_TYPE'] == 'test':
+    DEBUG = config('DEBUG_TEST', default=False, cast=bool)
+    EMAIL_BACKEND = config('EMAIL_BACKEND', default='')
+    EMAIL_FILE_PATH = config('EMAIL_FILE_PATH', default='')
+if os.environ['DJANGO_SERVER_TYPE'] == 'production':
+    DEBUG = config('DEBUG_PRODUCTION', default=False, cast=bool)
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+    EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+    EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)

@@ -1,3 +1,5 @@
-Hello Approver,
-
-The time card for {{ obj.employee.user.first_name }} with pay period ending {{ pay_period_end }} has been approved. <a href="{{ site_url }}{% url 'payroll:detail' id %}">You can view the invoice here.</a>
+Hello Approver,<br/>
+<br/>
+The time card for {{ first_name }} with pay period ending {{ pay_period_end }} has been approved.<br/>
+<br/>
+<a href="{{ site_url }}{% url 'payroll:detail' id %}">You can view the invoice here.</a>

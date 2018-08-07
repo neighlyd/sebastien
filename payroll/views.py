@@ -115,7 +115,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
             'employee': obj.employee.user.first_name,
             'pay_period_end': obj.pay_period_end,
             'id': obj.pk,
-            'site_url': self.request.META['HTTP_HOST'],
+            'site_url': self.request.META['HTTP_HOST']
         }
         payroll_email_employer = render_to_string('payroll/payroll_entered_for_employer.html', context)
         approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
@@ -123,14 +123,14 @@ class PayrollEntryView(views.LoginRequiredMixin,
             payroll_email_employee = render_to_string('payroll/payroll_entered_for_employee.html', context)
             send_mail(
                 subject,
-                payroll_email_employee,
+                'Your timecard for pay period ending {0} has been submitted for review.'.format(context['pay_period_end']),
                 from_email,
                 [obj.employee.user.email, ],
                 fail_silently=True,
                 html_message=payroll_email_employee,
             )
         send_mail(subject,
-                  payroll_email_employer,
+                  '{0} has entered a timecard for pay period ending {1}. Please go to sebastien.site to review and approve it.'.format(context['employee'], context['pay_period_end']),
                   from_email,
                   approver_emails,
                   fail_silently=True,
@@ -140,7 +140,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
         obj = form.save(commit=False)
         if obj.employee:
             obj = form.save()
-            self.send_email(obj)
+            # self.send_email(obj)
             return super(PayrollEntryView, self).form_valid(form)
         else:
             employee = self.request.user
@@ -151,7 +151,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
             else:
                 obj.employee = employee.profile
                 obj.save()
-                self.send_email(obj)
+                # self.send_email(obj)
                 return super(PayrollEntryView, self).form_valid(form)
 
 
@@ -176,6 +176,7 @@ class PayrollReviewView(views.LoginRequiredMixin,
         context = super().get_context_data(**kwargs)
         context['employee_taxes'] = self.object.employee_medicare + self.object.employee_social_security
         context['employer_taxes'] =  self.object.employer_medicare + self.object.employer_social_security + self.object.futa + self.object.wa_uta
+        context['combined_taxes'] = context['employee_taxes'] + context['employer_taxes']
         context['total_cost'] = self.object.gross_total + context['employer_taxes']
         context['net_pay'] = self.object.gross_total - context['employee_taxes']
         context['ytd'] = Payroll.objects\
@@ -190,6 +191,7 @@ class PayrollReviewView(views.LoginRequiredMixin,
         context['ytd']['employee_taxes'] = context['ytd']['employee_medicare'] + context['ytd']['employee_social_security']
         context['ytd']['net_pay'] = context['ytd']['gross_total'] - context['ytd']['employee_taxes']
         context['ytd']['total_cost'] = context['ytd']['gross_total'] + context['ytd']['employer_taxes']
+        context['ytd']['combined_taxes'] = context['ytd']['employer_taxes'] + context['ytd']['employee_taxes']
         return context
 
     def send_email(self, obj):
@@ -203,17 +205,16 @@ class PayrollReviewView(views.LoginRequiredMixin,
         }
         approver_emails = [a.email for a in User.objects.all() if a.has_perm('payroll.approve_payroll')]
         payroll_email_employer = render_to_string('payroll/payroll_approved_for_employer.html', context)
-
         if obj.employee.user.email:
             payroll_email_employee = render_to_string('payroll/payroll_approved_for_employee.html', context)
             send_mail(subject,
-                      payroll_email_employee,
+                      'Your timecard for pay period ending {0} has been approved. Visit sebastien.site to review the invoice'.format(context['pay_period_end']),
                       from_email,
                       [obj.employee.user.email],
                       fail_silently=True,
                       html_message=payroll_email_employee)
         send_mail(subject,
-                  payroll_email_employer,
+                  'The timecard for pay period ending {0} for {1} has been approved. Visit sebastien.site to review the invoice.'.format(context['pay_period_end'], context['employee']),
                   from_email,
                   approver_emails,
                   fail_silently=True,
@@ -224,7 +225,7 @@ class PayrollReviewView(views.LoginRequiredMixin,
         obj.paid = True
         obj.date_paid = datetime.datetime.now()
         obj.save()
-        self.send_email(obj)
+        # self.send_email(obj)
         return super(PayrollReviewView, self).form_valid(form)
 
 

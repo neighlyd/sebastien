@@ -14,15 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.urls import reverse_lazy
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='__base.html'), name='home'),
     url(r'^admin/', admin.site.urls),
-    url(r'payroll/', include(('payroll.urls', 'payroll'), namespace='payroll')),
-    url(r'accounts/', include(('profiles.urls', 'profiles'), namespace='profile')),
+    url(r'^payroll/', include(('payroll.urls', 'payroll'), namespace='payroll')),
+    url(r'^payroll/$',RedirectView.as_view(url=reverse_lazy('payroll:list')), name='payroll_redirect'),
+    url(r'^accounts/', include(('profiles.urls', 'profiles'), namespace='profile')),
     url(r'^accounts/login/$', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     url(r'^accounts/logout/$', auth_views.logout, {'next_page': 'home'}, name='logout'),
 ]

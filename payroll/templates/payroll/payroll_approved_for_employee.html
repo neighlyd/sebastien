@@ -1,3 +1,5 @@
-Hello {{ employee }},
-
-Your time card for pay period ending {{ pay_period_end }} has been approved. <a href="{{ site_url }}{% url 'payroll:detail' id %}">You can view the invoice here.</a>
+Hello {{ employee }},<br/>
+<br/>
+Your time card for pay period ending {{ pay_period_end }} has been approved.<br/>
+<br/>
+<a href="{{ site_url }}{% url 'payroll:detail' id %}">You can view the invoice here.</a>
