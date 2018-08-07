@@ -21,7 +21,7 @@
                             {% endif %}
                         {% endif %}
                         {% if obj.paid %}
-                            <button class="btn btn-success float-right">Approved</button>
+                            <a href="{% url 'payroll:detail' obj.id %}" class="btn btn-success float-right">Approved</a>
                         {% endif %}
                     </div>
                         {% if perms.payroll.approve_payroll %}<u>{{ obj.employee.user.first_name }} {{ obj.employee.user.last_name }}</u> - {{ obj.hours }} hours<br/>{% endif %}
