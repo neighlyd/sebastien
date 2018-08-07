@@ -6,12 +6,12 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Sum, F
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
-from django.template.loader import render_to_string, get_template
-from django.template import Context
+from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 from braces import views
 
@@ -138,11 +138,12 @@ class PayrollEntryView(views.LoginRequiredMixin,
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        if obj.employee:
-            obj = form.save()
-            # self.send_email(obj)
-            return super(PayrollEntryView, self).form_valid(form)
-        else:
+        try:
+            if obj.employee:
+                obj = form.save()
+                self.send_email(obj)
+                return super(PayrollEntryView, self).form_valid(form)
+        except ObjectDoesNotExist:
             employee = self.request.user
             if not employee.profile.wage:
                 messages.add_message(self.request, messages.ERROR,
@@ -151,7 +152,7 @@ class PayrollEntryView(views.LoginRequiredMixin,
             else:
                 obj.employee = employee.profile
                 obj.save()
-                # self.send_email(obj)
+                self.send_email(obj)
                 return super(PayrollEntryView, self).form_valid(form)
 
 
@@ -175,16 +176,17 @@ class PayrollReviewView(views.LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['employee_taxes'] = self.object.employee_medicare + self.object.employee_social_security
-        context['employer_taxes'] =  self.object.employer_medicare + self.object.employer_social_security + self.object.futa + self.object.wa_uta
+        context['employer_taxes'] = self.object.employer_medicare + self.object.employer_social_security + self.object.futa + self.object.wa_uta
         context['combined_taxes'] = context['employee_taxes'] + context['employer_taxes']
         context['total_cost'] = self.object.gross_total + context['employer_taxes']
         context['net_pay'] = self.object.gross_total - context['employee_taxes']
         context['ytd'] = Payroll.objects\
             .filter(employee=self.object.employee, pay_period_end__year=self.object.pay_period_end.year)\
             .exclude(pay_period_start__gt=self.object.pay_period_start)\
-            .aggregate(gross_total=Sum('gross_total'),employer_medicare=Sum('employer_medicare'),
+            .aggregate(gross_total=Sum('gross_total'), employer_medicare=Sum('employer_medicare'),
                        employer_social_security=Sum('employer_social_security'), futa=Sum('futa'), wa_uta=Sum('wa_uta'),
-                       employee_medicare=Sum('employee_medicare'), employee_social_security=Sum('employee_social_security'),
+                       employee_medicare=Sum('employee_medicare'),
+                       employee_social_security=Sum('employee_social_security'),
                        )
         context['ytd']['employer_taxes'] = \
             context['ytd']['employer_medicare'] + context['ytd']['employer_social_security'] + context['ytd']['futa'] + context['ytd']['wa_uta']
@@ -225,7 +227,7 @@ class PayrollReviewView(views.LoginRequiredMixin,
         obj.paid = True
         obj.date_paid = datetime.datetime.now()
         obj.save()
-        # self.send_email(obj)
+        self.send_email(obj)
         return super(PayrollReviewView, self).form_valid(form)
 
 
